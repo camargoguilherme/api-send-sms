@@ -21,6 +21,10 @@ class Modem {
     setInterval(() => {
       if (!modem.isOpened) {
         modem.open(this.device,this.modemOptions, (err,result) => {
+          this.onSendingMessage();
+          this.onMessageSent();
+          this.onMessageSendingFailed();
+          this.onNewMessage();
           if(err){
             console.log(err)
           }else{
@@ -31,6 +35,7 @@ class Modem {
         // console.log(`Serial port ${modem.port.path} is open`)
       }
     }, 1000)
+
   }
 
   teste(){
@@ -106,25 +111,72 @@ class Modem {
     }
     return res;
   }
+  readSMSByID(idMessage){
+    let message;
+    modem.ReadSMSByID(idMessage,(response) => {
+      console.log(response)
+      message = response;
+    })
+    return message;
+  }
+  //AINDA nao funciona kkk
+  readAllMessages(){
+    let messages;
+    /**AT+CMGL="REC UNREAD"
+     * REC UNREAD. It refers to the message status "received unread". It is the default value.
+      
+      AT+CMGL="REC READ"
+      REC READ. It refers to the message status "received read".
+
+      AT+CMGL="STO UNSENT"
+      STO UNSENT. It refers to the message status "stored unsent".
+
+      AT+CMGL="STO SENT"
+      STO SENT. It refers to the message status "stored sent".
+      
+      AT+CMGL="ALL"
+      ALL. It tells the +CMGL AT command to list all messages.
+     */
+    console.log('readAllMessages exit')
+    return this.executeCommand('AT+CMGL')
+  }
 
   onSendingMessage(){
     modem.on('onSendingMessage', (data) => {
+      console.log('======================================')
       console.log('onSendingMessage')
-      console.log(data)
+      console.log(data+'\n\n')
+      console.log('======================================')/*
+      console.log('======================================')
+      console.log(`Parts: ${data.header&&data.header['current_part']} of ${data.header&&data.header['parts']}`)
+      console.log('SMS Text: ',data.message)
+      console.log('======================================')*/
     })
   }
 
   onMessageSent(){
     modem.on('onMessageSent', (data) => {
+      console.log('======================================')
       console.log('onMessageSent')
-      console.log(data)
+      console.log(data+'\n\n')
+      console.log('======================================')/*
+      console.log('======================================')
+      console.log(`Parts: ${data.header&&data.header['current_part']} of ${data.header&&data.header['parts']}`)
+      console.log('SMS Text: ',data.message)
+      console.log('======================================')*/
     })
   }
 
   onMessageSendingFailed(){
     modem.on('onMessageSendingFailed', (data) => {
+      console.log('======================================')
       console.log('Fail')
-      console.log(data)
+      console.log(data+'\n\n');
+      console.log('======================================')/*
+      console.log('======================================')
+      console.log(`Parts: ${data.header&&data.header['current_part']} of ${data.header&&data.header['parts']}`)
+      console.log('SMS Text: ',data.message)
+      console.log('======================================')*/
     })
   }
 
@@ -150,22 +202,16 @@ class Modem {
     })
   }
 
+  executeCommand(command){
+    let messages
+    modem.executeCommand(command, function(data) {
+      messages = data
+    })
+    console.log('executeCommand exit')
+    return messages
+  }
+  
+
 }
-
-
- 
-
-
-
-
- 
-
- 
-
-
-
-
-
-
 
 module.exports = { Modem: Modem}
